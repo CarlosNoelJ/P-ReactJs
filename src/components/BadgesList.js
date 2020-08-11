@@ -4,13 +4,43 @@ import './styles/BadgesList.css';
 import BadgesListItem from './BadgesListItem';
 import { Link } from 'react-router-dom';
 
-class BadgesList extends React.Component {
-    render() {
+function useSearchBadges(badges) {
 
-      if (this.props.badges.length == 0) {
+  const [query , setQuery] = React.useState('')
+      const [filteredBadges, setfilteredBadges ] = React.useState(badges);
+
+      React.useMemo(() => {
+        const result = badges.filter(badge => {
+        return `${badge.firstName} ${badge.lastName}`
+                .toLowerCase()
+                .includes(query.toLowerCase());
+      });
+
+      setfilteredBadges( result )
+    }, [badges, query]);
+
+  return { query , setQuery, filteredBadges};
+}
+
+function BadgesList (props) {
+
+      const badges = props.badges;
+
+      const { query , setQuery, filteredBadges } = useSearchBadges(badges);
+
+      if (filteredBadges.length == 0) {
         return (
           <div>
-            <h3>No badges were found</h3>
+            <div className="form-group">
+            <label>Filter Badges</label>
+            <input type="text" className="form-control"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value)
+              }}
+            />
+            <h1>No Results</h1>
+          </div>
             <Link className="btn btn-primary" to="/badges/new">
                Create new badge
             </Link>
@@ -20,12 +50,21 @@ class BadgesList extends React.Component {
 
       return (
         <div className="BadgesList">
+          <div className="form-group">
+            <label>Filter Badges</label>
+            <input type="text" className="form-control"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value)
+              }}
+            />
+          </div>
           <ul className="list-unstyled">
-            {this.props.badges.map(badge => {
+            {filteredBadges.map(badge => {
               return (
                 <li key={badge.id}>
                   <Link className="text-reset text-decoration-none" 
-                        to={`/badges/${badge.id}/edit`}>
+                        to={`/badges/${badge.id}`}>
                     <BadgesListItem badge={badge} />
                   </Link>
                 </li>
@@ -34,8 +73,7 @@ class BadgesList extends React.Component {
           </ul>
         </div>
       );
-    }
-  }
+}
 
 
 export default BadgesList;
